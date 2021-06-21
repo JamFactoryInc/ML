@@ -1,0 +1,174 @@
+vwAccounts <--> Core Account Information
+========================================
+ContractID
+ContractNum
+ContractDraw
+IsActive
+ClientID1					many ---> 1 :: vwClients.ClientID
+RegularPaymentInterval
+FirstPaymentInterval
+EndState					many ---> 1 :: TblList_EndStates.SysID
+EndStateDate
+CycleLimit
+CycleDraws
+CycleRepayments
+CycleStatus					many ---> 1 :: TblList_CycleStatus.SystemID
+CycleStatusDT
+
+
+vwAccountsEndStates <--> History of Account End States
+======================================================
+ID
+ContractID					many ---> 1 :: vwAccounts.ContractID
+esState						many ---> 1 :: TblList_EndStates.SysID
+esAmount
+esDate
+
+
+vwAccountsPayments <--> Payment Transaction Entries for Accounts
+================================================================
+PaymentID
+ContractID					many ---> 1 :: vwAccounts.ContractID
+PaymentNum					NOTE :: Payment Sequence/Order Number in the list of Payment Transactions for the client
+PaymentType					many ---> 1 :: TblList_PaymentTypes.PaymentType
+PaymentDate
+Amount						NOTE :: Transaction Amount
+Description
+TotalBalance	  
+TotalAdjustedBalance				NOTE :: Actual Account Balance as a result of the transaction being processed
+SchedPayID					many ---> 1 :: vwAccountsSchedules.SchedPayID
+ContractDraw					NOTE :: Period "Draw Identifier" for Payments Made to Client in a period
+	  
+
+vwAccountsSchedules <--> Repayment Schedule for Accounts
+========================================================
+SchedPayID
+ContractID					many ---> 1 :: vwAccounts.ContractID
+ScheduleKeyDate
+ScheduleInterval
+ScheduleDate
+ScheduleAmount
+PaymentDate
+PaymentSource					many ---> 1 :: TblList_RepaymentSources.ID
+PaymentClass					many ---> 1 :: TblList_RepaymentClasses.ID
+PaymentAmount
+PaymentSplit
+PaymentStatus		
+FinaliseDate
+ReceivedCount
+ReceivedAmount
+TotalRepayments
+TotalBalance
+TotalAdjustedBalance
+ChangedBy
+ChangedOn
+PreventExtraPayment
+ScheduleSeqNum
+isSuccessExpected
+isRepeating
+Reference
+OurFee
+CustomerFee
+	  
+
+vwClients <--> Core Client Information of Account Holders/Owners
+================================================================
+ClientID					---> vwAccounts.ClientID1
+DOB
+PhoneHome
+PhoneMobile
+Email
+Gender
+
+
+vwClientsAddresses <--> Currenty and Historicial Client Address Data (cf. addrType field)
+====================================================================
+AddressID
+SourceTableID					Type Value ---> 6 (for ClientID)
+SourceID					many ---> 1 :: vwClients.ClientID
+CreatedDT
+CreatedBy
+ModifiedDT
+ModifiedBy
+addrType					Type Value ---> 'Current', 'Previous', 'Work', 'Mailing')
+addrStreet
+addrSuburb					Type Value ---> TblList_Suburbs.Suburb
+addrState					Type Value ---> TblList_States.State
+addrPostCode					Type Value ---> TblList_Suburbs.Postcode
+addrStartDate
+addrEndDate
+
+
+ClientsEmployment <--> Currenty and Historicial Client Employment Data (cf. empType field)
+======================================================================
+EmploymentID
+SourceTableID					Type Value ---> 6 (for ClientID)
+SourceID					many ---> 1 :: vwClients.ClientID
+CreatedDT
+CreatedBy
+ModifiedDT
+ModifiedBy
+empType						Type Value ---> 'Current'   ,'Pending'     ,'Previous'
+empBasis					Type Value ---> 'C' (Casual),'F' (Fulltime),'P' (Parttime),'S' (Self-employed), 'W' (Pension)
+empStartDate
+empEndDate
+empSalaryInterval				Type Value ---> 7 (Weekly), 14 (Fortnighly), 28 (Every 4 Weeks), 60 (Monthly)
+empSalaryRefDate
+empSalaryAmount
+empCurrentSalaryInterval			Type Value ---> 7 (Weekly), 14 (Fortnighly), 28 (Every 4 Weeks), 60 (Monthly)
+
+
+vwGatewayPayments <--> Payment and Repayment Transactions Processed to Banks and Financial Institutions (cf. Status field)
+=======================================================================================================
+GatePayID
+ContractID					many ---> 1 :: vwAccounts.ContractID
+ContractNum
+ClientID					many ---> 1 :: vwClients.ClientID
+ClientAccountID
+CreatedDT
+CreatedBy
+DrCr						Type Value ---> 'Dr' (Repayment From), 'Cr' (Payment To)
+SchedPayID					many ---> 1 :: vwAccountsSchedules.SchedPayID
+ScheduleInstance
+ScheduleCount
+ScheduleDT
+ScheduleAmount
+ScheduleAccount
+FinaliseDT
+PostDT
+PostAmount
+ProcessedDT
+PaymentSource
+PaymentClass
+Status						Type Value ---> ('Deleted','Success','Dishonour','Fatal','Pending','Waiting')
+StatusDT
+FailureReason
+ReceivedAmount
+PaymentID					many ---> 1 :: vwAccountsPayments.PaymentID
+
+
+vwAudit <--> Audit Records of Actions Taken on the System and in Accounts
+=========================================================================
+AuditID
+AuditDate
+AuditUser
+AuditTable					---> actual table names
+AuditKey					---> actual table record ids
+AuditOp
+AuditField
+OldValue
+NewValue
+Notes
+AuditStatus
+	  
+TblList_PaymentTypes <--> Definition List of Payment Types
+==========================================================
+PaymentType					1 ---> many :: vwAccountsPayments.PaymentType
+SortOrder
+Description
+StatementText
+Action						---> vwGatewayPayments.DrCr
+
+
+TblList_..... <--> OTHER definition lists which limit the values for certain fields
+===================================================================================

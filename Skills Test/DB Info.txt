@@ -1,0 +1,6 @@
+Data Analyst Skills Test Database
+=================================
+
+Server:		tcp:insql2,13000
+Database:	DSExam
+Authentication:	SQL Server

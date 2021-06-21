@@ -1,0 +1,275 @@
+Qs for Brett:
+Two clients per account? Conflicting addresses?
+Account ID is Contract ID?
+Is a draw a Gateway payment? e.g. if i wanted to count an account's draws would I count successful Gateway payments for that Contract ID?
+
+---------------------------------------------------------------------------------------------------
+TASK 1
+---------------------------------------------------------------------------------------------------
+
+Think of 6 Demographics to report on:
+1.Age
+2.Gender
+3.Salary interval
+4.Annual Wage
+5.State (Stretch goal: Make heat map of post codes using location data + google maps)
+6.Draw Limit
+
+What statistics should you track/ report on according to these demographics?
+-demographic sizes
+-draws per month per capita
+-avg draw amount
+ >> total amount withdrawn per month
+-accounts made by day in each demographic bracket
+-percent of draw capacity used (if allowed 1 draw per week at $100, $50 per week would be 50% capacity)
+
+
+How should you visualize each statistic?
+demographic sizes: 
+	-Pie chart with demographic populations
+
+draws per month per capita per demog.
+	-Bar graph
+
+total amount withdrawn per month per capita per demog.
+	-Bar graph
+
+accounts made by day in each demog.
+	-line chart
+
+avg draw amt. per demog.
+	-Bar graph
+
+percent of draw capacity used
+	-Bar graph showing general statistics
+	
+
+Create 6 Demographics reports of your choice, based on the Client Data. Visualize appropriately.
+
+Which of these 6 are most suited to Marketing/Advertising?
+
+Why?
+
+Which of these 6 are the best at representing the client breakdown to management?
+
+Make a summary of active accounts' demographics by:
+	-week
+	-state
+	-all states
+
+Show the % change of these demographics from 30-Nov-2020 to 31-Jan-2021.
+	-6 side-by-side bar charts
+	-as well as 6 line charts to show a more in-depth but less clear representation
+
+
+
+---------------------------------------------------------------------------------------------------
+TASK 2
+---------------------------------------------------------------------------------------------------
+
+Create a report by state and total & Visualize accordingly:
+1. Growth of new accounts
+2. Age of existing accounts
+3. Avg number of draws per month for weekly salary earners
+4. Freq dist. of accounts and their draws in relation to account age (Created prior to Jan 1st)
+
+
+Steps:
+
+1: Growth of new accounts
+	Make SQL statement to get number of accounts created on a day:
+	DECLARE @DesiredDate AS DATE = '2020-10-16';
+	SELECT acc.CreateDate FROM vwAccounts as acc WHERE CAST(acc.CreateDate AS DATE) = @DesiredDate;
+
+	Make SQL statement to get number of accounts created on a day by state:
+	DECLARE @DesiredDate AS DATE = '2020-10-16';
+	SELECT COUNT(*) as 'New accounts', addr.addrState FROM vwAccounts as acc INNER JOIN vwClients as cl ON cl.ClientID = acc.ClientID1 INNER JOIN vwClientsAddresses addr ON acc.ClientID1 = addr.SourceID AND addr.SourceTableID = 6 WHERE CAST(acc.CreateDate AS DATE) = @DesiredDate GROUP BY addr.addrState;
+
+	Make SQL statement to get number of accounts created each day for a particular state:
+	DECLARE @DesiredState AS VARCHAR(3)= 'NSW';
+	SELECT COUNT(*) as 'New accounts', addr.addrState FROM vwAccounts as acc INNER JOIN vwClients as cl ON cl.ClientID = acc.ClientID1 INNER JOIN vwClientsAddresses addr ON acc.ClientID1 = addr.SourceID AND addr.SourceTableID = 6 WHERE addr.addrState = @DesiredState GROUP BY acc.CreateDate;
+
+	Graph these numbers as a function of time (each day is an x cordinate)
+
+
+2: Age of existing accounts
+	Make SQL statement to get age in days of an account
+	DECLARE @DesiredAccount AS INTEGER = 28721 ;
+	SELECT DATEDIFF(DAY, acc.CreateDate, GETDATE()) as 'Days Since Creation' FROM vwAccounts as acc WHERE acc.ContractID = @DesiredAccount;
+
+	Make SQL statement to get age in days of every account
+	SELECT DATEDIFF(DAY, acc.CreateDate, GETDATE()) as 'Days Since Creation' FROM vwAccounts as acc;
+	
+	Make SQL statement to get age in days of every account by state
+	SELECT DATEDIFF(DAY, acc.CreateDate, GETDATE()) as 'Days Since Creation', addr.addrState FROM vwAccounts as acc INNER JOIN vwClients as cl ON cl.ClientID = acc.ClientID1 INNER JOIN vwClientsAddresses addr ON acc.ClientID1 = addr.SourceID AND addr.SourceTableID = 6 GROUP BY addr.addrState;
+
+
+	Make SQL statement to get avg account age in days
+	SELECT AVG(DATEDIFF(DAY, acc.CreateDate, GETDATE())), addr.addrState as 'Days Since Creation' FROM vwAccounts as acc;
+
+	Make SQL statement to get avg account age in days by state
+	SELECT AVG(DATEDIFF(DAY, acc.CreateDate, GETDATE())), addr.addrState as 'Days Since Creation' FROM vwAccounts as acc INNER JOIN vwClients as cl ON cl.ClientID = acc.ClientID1 INNER JOIN vwClientsAddresses addr ON acc.ClientID1 = addr.SourceID AND addr.SourceTableID = 6 GROUP BY addr.addrState;
+
+	Make graph of avg account age by state as a function of time. Include STDEV on points
+
+3: Avg number of draws per month for weekly salary earners created before Jan 1:
+	Make SQL statement to get draws in a month
+	SELECT COUNT(*) FROM vwGatewayPayments gp WHERE gp.DrCr = 'Cr;
+
+	Make SQL statement to get draws in a month for weekly salary earners
+
+	Make SQL statement to get draws in a month for weekly salary earners with accounts created before Jan 1
+	
+	Make SQL statement to get draws in a month for weekly salary earners with accounts created before Jan 1 by state
+	
+4: Freq dist. of accounts and their draws in relation to account age (Created prior to Jan 1st)
+	Re-use SQL statement to get accounts created before Jan 1
+	
+	Make SQL statement to get accounts created before Jan 1's account age
+
+	Make SQL statement to get accounts created before Jan 1's account age and their monthly draws
+
+Create a growth forecast report (of your choice) by state and total:
+	Choose statistic to track:
+
+	
+	
+
+---------------------------------------------------------------------------------------------------
+TASK 3
+---------------------------------------------------------------------------------------------------
+1a. Identify and summarise successful Gateway payment transactions that have missing records:
+	Make a SQL statement to get successful Gateway payment transactions
+	SELECT gp.gatepayid from vwGatewayPayments gp WHERE gp.status = 'SUCCESS';
+	
+	Make a SQL statement to get successful Gateway payment transactions that have missing Account payment records
+	SELECT gp.gatepayid from vwGatewayPayments gp LEFT JOIN vwAccountsPayments ap ON ap.PaymentID IS NULL WHERE gp.status = 'SUCCESS';
+
+1b. What conclusion can you come to with respect to the database system's performance and processing?
+
+2a. For each salary interval type summarize:
+	-total daily payments to clients by state
+		-Make a SQL statement to get payments to clients
+		SELECT COUNT(ap.PaymentID) FROM vwAccountsPayments ap WHERE ap.PaymentType = 4;
+
+		-Make a SQL statement to get payments to clients by day by Salary Interval
+		SQLVARS: ['\'ACT\'' , '\'NSW\'', '\'WA\'' , '\'SA\'' , '\'QLD\'' , '\'NT\'' , '\'VIC\'' , '\'TAS\'']
+		SELECT * FROM
+		(
+		SELECT ap.amount AS MoneyPaid,
+		      acc.RegularPaymentInterval AS AddrState,
+		      ap.PaymentDate AS PayDate 
+		FROM vwAccountsPayments ap 
+		INNER JOIN vwAccounts acc ON ap.ContractID = acc.ContractID 
+		INNER JOIN vwClients as cl ON cl.ClientID = acc.ClientID1 
+		INNER JOIN vwClientsAddresses addr ON acc.ClientID1 = addr.SourceID 
+		     AND addr.SourceTableID = 6 
+		WHERE ap.PaymentType = 4 AND LEFT(ap.Description,20) = 'Salary Advance' + CHAR(13) + CHAR(10) + '[REF'
+		     AND addr.addrState = $
+		) p
+		PIVOT(
+		     SUM(MoneyPaid)
+		     FOR AddrState IN(
+		         [7], [14], [60]
+		     )
+		) as pvt ORDER BY PayDate
+		
+	-successful payments from clients by state
+	SQLVARS: ['\'ACT\'' , '\'NSW\'', '\'WA\'' , '\'SA\'' , '\'QLD\'' , '\'NT\'' , '\'VIC\'' , '\'TAS\'']
+	SELECT * FROM
+	(
+	SELECT ap.amount AS MoneyPaid,
+	      acc.RegularPaymentInterval AS AddrState,
+	      ap.PaymentDate AS PayDate 
+	FROM vwAccountsPayments ap 
+	INNER JOIN vwAccounts acc ON ap.ContractID = acc.ContractID 
+	INNER JOIN vwClients as cl ON cl.ClientID = acc.ClientID1 
+	INNER JOIN vwClientsAddresses addr ON acc.ClientID1 = addr.SourceID 
+	     AND addr.SourceTableID = 6 
+	WHERE ap.PaymentType = 0
+	     AND addr.addrState = $
+	) p
+	PIVOT(
+	     SUM(MoneyPaid)
+	     FOR AddrState IN(
+	         [7], [14], [60]
+	     )
+	) as pvt ORDER BY PayDate
+		
+
+2b. Graph each accordingly
+
+3a. For each salary interval, summarize the total daily unsuccessful repayments from clients by state
+
+3b. Visualise accordingly
+
+[QUESTIONS] Given that, for people with weekly salaries, repayments should be made the week after a payment/draw is made,
+	what inferences can you make about the successfulness of repayments in relation to payments?
+
+Are there any patterns in the data/tables which stand out as worth investigating further?
+
+What fields (if different to the question above) have the potential for further analysis?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
